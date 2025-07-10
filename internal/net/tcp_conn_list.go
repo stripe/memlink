@@ -7,13 +7,13 @@ import (
 	"sync/atomic"
 
 	"github.com/google/uuid"
-	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
-	"github.com/hemal-shah/memlink/codec"
+	"github.com/stripe/memlink/codec"
 )
 
-var backendUnhealthyErr = errors.New("connection to backend is unhealthy")
+var errBackendUnhealthy = errors.New("connection to backend is unhealthy")
 
 // TCPConnList maintains a set of connections to the same underlying address internally and allows a
 // write to go through.
@@ -54,12 +54,12 @@ func (t *tcpConnList) Append(link codec.Link) error {
 		newIterIdx := atomic.AddUint64(&t.iterIdx, 1)
 		target := newIterIdx % t.numConns
 
-		if err := t.conns[target].Append(link); !errors.Is(err, connChangingStateErr) {
+		if err := t.conns[target].Append(link); !errors.Is(err, errConnChangingState) {
 			return err
 		}
 	}
 
-	return fmt.Errorf("backend=%s attempts=%d error=%w", t.be.String(), t.numConns, backendUnhealthyErr)
+	return fmt.Errorf("backend=%s attempts=%d error=%w", t.be.String(), t.numConns, errBackendUnhealthy)
 }
 
 var _ TCPConnList = (*tcpConnList)(nil)

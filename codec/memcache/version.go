@@ -5,10 +5,10 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/hemal-shah/memlink/codec"
+	"github.com/stripe/memlink/codec"
 )
 
-var nonVersionRespErr = errors.New("expected VERSION prefix in response")
+var errNonVersionResp = errors.New("expected VERSION prefix in response")
 
 type VersionEncoder struct{}
 
@@ -41,7 +41,7 @@ func (d *VersionDecoder) Decode(reader *bufio.Reader) error {
 		// Ideally we don't return errors here, let the User of the API take care of any mismatch
 		// or internal issue, but since VERSION command can't support opaque tokens, we have to break up the connection
 		// if its not starting with VERSION
-		return nonVersionRespErr
+		return errNonVersionResp
 	}
 
 	return nil

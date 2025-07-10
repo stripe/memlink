@@ -66,14 +66,15 @@ func Test_MetaSetDecoders_HappyPath(t *testing.T) {
 			data := &bytes.Buffer{}
 			writer := bufio.NewWriter(data)
 
-			writer.Write(tt.memcachedResponse)
-			writer.Flush()
+			_, err := writer.Write(tt.memcachedResponse)
+			assert.NoError(t, err)
+			assert.NoError(t, writer.Flush())
 
 			decoder := &MetaSetDecoder{}
 			decoder.Reset()
 
 			mockReader := bufio.NewReader(data)
-			err := decoder.Decode(mockReader)
+			err = decoder.Decode(mockReader)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedOpaque, decoder.Opaque)
 			assert.Equal(t, tt.expectedCasId, decoder.CasId)
@@ -103,13 +104,14 @@ func Test_MetaSetDecoder_ErrorPath(t *testing.T) {
 			data := &bytes.Buffer{}
 			writer := bufio.NewWriter(data)
 
-			writer.Write(tt.erroneousLine)
-			writer.Flush()
+			_, err := writer.Write(tt.erroneousLine)
+			assert.NoError(t, err)
+			assert.NoError(t, writer.Flush())
 			decoder := &MetaSetDecoder{}
 			decoder.Reset()
 
 			mockReader := bufio.NewReader(data)
-			err := decoder.Decode(mockReader)
+			err = decoder.Decode(mockReader)
 			assert.Error(t, err)
 		})
 	}

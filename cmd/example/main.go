@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/hemal-shah/memlink/codec/memcache"
-	"github.com/hemal-shah/memlink/internal/pools"
+	"github.com/stripe/memlink/codec/memcache"
+	"github.com/stripe/memlink/internal/pools"
 	"go.uber.org/zap"
 )
 
@@ -77,7 +77,7 @@ func example() {
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
-	defer client.Close()
+	defer client.Close() //nolint: errcheck
 
 	ctx := context.Background()
 
@@ -202,7 +202,7 @@ func exampleWithAdvancedFeatures() {
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
-	defer client.Close()
+	defer client.Close() //nolint: errcheck
 
 	ctx := context.Background()
 
@@ -269,7 +269,7 @@ func exampleWithContext() {
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
-	defer client.Close()
+	defer client.Close() //nolint: errcheck
 
 	// Create a context with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -307,7 +307,7 @@ func exampleBulkOperations() {
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
-	defer client.Close()
+	defer client.Close() //nolint: errcheck
 
 	ctx := context.Background()
 
@@ -380,7 +380,7 @@ func exampleBulkGet() {
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
-	defer client.Close()
+	defer client.Close() //nolint: errcheck
 
 	ctx := context.Background()
 

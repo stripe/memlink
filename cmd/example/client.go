@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/hemal-shah/memlink/codec"
-	"github.com/hemal-shah/memlink/codec/memcache"
-	netpkg "github.com/hemal-shah/memlink/internal/net"
+	"github.com/stripe/memlink/codec"
+	"github.com/stripe/memlink/codec/memcache"
+	netpkg "github.com/stripe/memlink/internal/net"
 	"go.uber.org/zap"
 )
 

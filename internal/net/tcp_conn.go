@@ -12,8 +12,8 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 
-	"github.com/hemal-shah/memlink/codec"
-	"github.com/hemal-shah/memlink/internal/utils"
+	"github.com/stripe/memlink/codec"
+	"github.com/stripe/memlink/internal/utils"
 )
 
 const (
@@ -71,9 +71,9 @@ const (
 	ConnectFailed connState = "connect_failed"
 )
 
-var connChangingStateErr = errors.New("tcpConn: failed to acquire lock as the connection is changing state")
-var zombieLinkOnEncoderErr = errors.New("tcpConn: encoder: link was pending in the encoder channel but conn was closed before processing")
-var zombieLinkOnDecoderErr = errors.New("tcpConn: decoder: link was pending in the decoder channel but conn was closed before processing")
+var errConnChangingState = errors.New("tcpConn: failed to acquire lock as the connection is changing state")
+var errZombieLinkOnEncoder = errors.New("tcpConn: encoder: link was pending in the encoder channel but conn was closed before processing")
+var errZombieLinkOnDecoder = errors.New("tcpConn: decoder: link was pending in the decoder channel but conn was closed before processing")
 
 // TCPConn represents a single connection to an address.
 type TCPConn interface {
@@ -151,7 +151,7 @@ func (c *tcpConn) Append(link codec.Link) (err error) {
 		}
 		c.mu.RUnlock()
 	} else {
-		err = connChangingStateErr
+		err = errConnChangingState
 	}
 	return
 }
@@ -204,7 +204,7 @@ func (c *tcpConn) HandleOutbound(ctx context.Context) error {
 				return err
 			}
 
-			if flushErr := c.rw.Writer.Flush(); flushErr != nil {
+			if flushErr := c.rw.Flush(); flushErr != nil {
 				link.Complete(fmt.Errorf("HandleOutbound: error trying to flush request to %s backend: %w", c.be.String(), flushErr))
 				return flushErr
 			}
@@ -300,13 +300,13 @@ func (c *tcpConn) manager(started func()) {
 		pendingOutboundLinks := len(c.outbound)
 		for i := 0; i < pendingOutboundLinks; i++ {
 			link := <-c.outbound
-			link.Complete(zombieLinkOnEncoderErr)
+			link.Complete(errZombieLinkOnEncoder)
 		}
 
 		pendingInboundLinks := len(c.inbound)
 		for i := 0; i < pendingInboundLinks; i++ {
 			link := <-c.inbound
-			link.Complete(zombieLinkOnDecoderErr)
+			link.Complete(errZombieLinkOnDecoder)
 		}
 		c.mu.Unlock()
 

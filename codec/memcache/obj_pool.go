@@ -3,7 +3,7 @@ package memcache
 import (
 	"bytes"
 
-	"github.com/hemal-shah/memlink/internal/safepool"
+	"github.com/stripe/memlink/internal/safepool"
 )
 
 var bytePool = safepool.NewBufferPool(func() *bytes.Buffer {

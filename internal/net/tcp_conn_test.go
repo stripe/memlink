@@ -15,7 +15,7 @@ import (
 	"go.uber.org/goleak"
 	"go.uber.org/zap"
 
-	"github.com/hemal-shah/memlink/codec"
+	"github.com/stripe/memlink/codec"
 )
 
 type MockLink struct {
@@ -111,7 +111,7 @@ func (e *ErrorfulMockLinkDecoder) Reset() {
 func TestNewTCPConnSuccess(t *testing.T) {
 	defer goleak.VerifyNone(t, goleak.IgnoreCurrent())
 	listener, _ := net.Listen("tcp", "localhost:11211")
-	defer listener.Close()
+	defer listener.Close() //nolint: errcheck
 
 	be := NewBackend(listener.Addr(), 1, nil)
 	conn, err := NewTCPConn(be, zap.NewNop())
@@ -128,7 +128,7 @@ func TestNewTCPConnSuccess(t *testing.T) {
 
 func TestInvalidConnectionStateAppend(t *testing.T) {
 	listener, _ := net.Listen("tcp", "localhost:11211")
-	defer listener.Close()
+	defer listener.Close() //nolint: errcheck
 	defer goleak.VerifyNone(t, goleak.IgnoreCurrent())
 	be := NewBackend(listener.Addr(), 1, nil)
 	conn := &tcpConn{be: be, state: Reconnecting}
@@ -165,8 +165,8 @@ func TestHandleInbound(t *testing.T) {
 func TestHandleOutbound(t *testing.T) {
 	defer goleak.VerifyNone(t, goleak.IgnoreCurrent())
 	conn1, conn2 := net.Pipe()
-	defer conn1.Close()
-	defer conn2.Close()
+	defer conn1.Close() //nolint: errcheck
+	defer conn2.Close() //nolint: errcheck
 	fakeTC := &tcpConn{
 		outbound: make(chan codec.Link, 1),
 		inbound:  make(chan codec.Link, 1),
@@ -194,7 +194,7 @@ func TestHandleOutbound(t *testing.T) {
 func TestClose(t *testing.T) {
 	defer goleak.VerifyNone(t, goleak.IgnoreCurrent())
 	listener, _ := net.Listen("tcp", "localhost:11211")
-	defer listener.Close()
+	defer listener.Close() //nolint: errcheck
 
 	be := NewBackend(listener.Addr(), 1, nil)
 	conn, _ := NewTCPConn(be, zap.NewNop())
@@ -209,7 +209,7 @@ func TestClose(t *testing.T) {
 func TestManagerTerminates(t *testing.T) {
 	defer goleak.VerifyNone(t, goleak.IgnoreCurrent())
 	listener, _ := net.Listen("tcp", "localhost:11211")
-	defer listener.Close()
+	defer listener.Close() //nolint: errcheck
 
 	be := NewBackend(listener.Addr(), 1, nil)
 	conn, _ := NewTCPConn(be, zap.NewNop())
@@ -227,12 +227,12 @@ func TestManagerTerminates(t *testing.T) {
 
 func TestConcurrentStateManagement(t *testing.T) {
 	listener, _ := net.Listen("tcp", "localhost:0")
-	defer listener.Close()
+	defer listener.Close() //nolint: errcheck
 
 	be := &Backend{addr: listener.Addr(), numConns: 1}
 	fakeTC, err := NewTCPConn(be, zap.NewNop())
 	assert.NoError(t, err)
-	defer fakeTC.Close()
+	defer fakeTC.Close() //nolint: errcheck
 	conn := fakeTC.(*tcpConn)
 
 	var wg sync.WaitGroup
@@ -249,7 +249,7 @@ func TestConcurrentStateManagement(t *testing.T) {
 			link.On("Decoder").Return(decoder)
 			decoder.On("Decode", mock.Anything).Return(nil)
 			link.On("Complete", nil).Return()
-			conn.Append(link)
+			assert.NoError(t, conn.Append(link))
 		}()
 	}
 	wg.Wait()
@@ -266,7 +266,7 @@ func TestConcurrentStateManagement(t *testing.T) {
 
 func TestHandleConcurrency(t *testing.T) {
 	listener, _ := net.Listen("tcp", "localhost:11211")
-	defer listener.Close()
+	defer listener.Close() //nolint: errcheck
 
 	be := &Backend{addr: listener.Addr(), numConns: 1}
 	fakeTCP, err := NewTCPConn(be, zap.NewNop())
@@ -310,7 +310,7 @@ func TestDataRaceDuringTermination(t *testing.T) {
 	defer goleak.VerifyNone(t, goleak.IgnoreCurrent())
 
 	listener, _ := net.Listen("tcp", "localhost:11211")
-	defer listener.Close()
+	defer listener.Close() //nolint: errcheck
 
 	be := &Backend{addr: listener.Addr(), numConns: 1}
 	fakeTCP, err := NewTCPConn(be, zap.NewNop())
@@ -334,7 +334,7 @@ func TestDataRaceDuringTermination(t *testing.T) {
 func TestIOErrorEncoderPostClose(t *testing.T) {
 	defer goleak.VerifyNone(t, goleak.IgnoreCurrent())
 	listener, _ := net.Listen("tcp", "localhost:11211")
-	defer listener.Close()
+	defer listener.Close() //nolint: errcheck
 
 	be := &Backend{addr: listener.Addr(), numConns: 1}
 	fakeTCP, err := NewTCPConn(be, zap.NewNop())
@@ -359,7 +359,7 @@ func TestIOErrorEncoderPostClose(t *testing.T) {
 func TestIOErrorDecoderPostClose(t *testing.T) {
 	defer goleak.VerifyNone(t, goleak.IgnoreCurrent())
 	listener, _ := net.Listen("tcp", "localhost:11211")
-	defer listener.Close()
+	defer listener.Close() //nolint: errcheck
 
 	be := &Backend{addr: listener.Addr(), numConns: 1}
 	fakeTCP, err := NewTCPConn(be, zap.NewNop())
@@ -384,8 +384,8 @@ func TestSetDeadlineIfNeeded(t *testing.T) {
 	defer goleak.VerifyNone(t, goleak.IgnoreCurrent())
 
 	conn1, conn2 := net.Pipe()
-	defer conn1.Close()
-	defer conn2.Close()
+	defer conn1.Close() //nolint: errcheck
+	defer conn2.Close() //nolint: errcheck
 
 	fakeTC := &tcpConn{
 		conn:      conn1,

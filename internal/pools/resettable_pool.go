@@ -3,7 +3,7 @@ package pools
 import (
 	"sync"
 
-	"github.com/hemal-shah/memlink/internal"
+	"github.com/stripe/memlink/internal"
 )
 
 // Like safepool.Pool but for Resettable structs.

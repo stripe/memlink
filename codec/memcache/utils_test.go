@@ -78,7 +78,7 @@ func TestIsLegalMemcacheKey(t *testing.T) {
 
 func TestWriteKey(t *testing.T) {
 	var buffer bytes.Buffer
-	writeKey(&buffer, "testKey")
+	assert.NoError(t, writeKey(&buffer, "testKey"))
 	expected := "testKey "
 	assert.Equal(t, expected, buffer.String())
 }

@@ -10,11 +10,11 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 
-	"github.com/hemal-shah/memlink/codec"
+	"github.com/stripe/memlink/codec"
 )
 
-var emptyConnPoolErr = errors.New("tcpConnPool: empty connection pool")
-var connPoolExhaustedErr = errors.New("tcpConnPool: exhausted entire connection pool trying to append link")
+var errEmptyConnPool = errors.New("tcpConnPool: empty connection pool")
+var errConnPoolExhausted = errors.New("tcpConnPool: exhausted entire connection pool trying to append link")
 
 // TCPConnPool is the ultimate pool which can submit a request to any target address in the connection pool
 type TCPConnPool interface {
@@ -148,8 +148,8 @@ func (t *tcpConnPool) Append(link codec.Link) error {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 
-	if t.cm == nil || len(t.cm) == 0 {
-		return emptyConnPoolErr
+	if len(t.cm) == 0 {
+		return errEmptyConnPool
 	}
 
 	for i := 0; i < t.maxIdxForHash; i++ {
@@ -162,13 +162,13 @@ func (t *tcpConnPool) Append(link codec.Link) error {
 
 		err := t.cm[t.beKey(idx)].Append(link)
 
-		if !errors.Is(err, backendUnhealthyErr) {
+		if !errors.Is(err, errBackendUnhealthy) {
 			// If append is successfull but there's another form of errors, we should break early and return that.
 			return err
 		}
 	}
 
-	return connPoolExhaustedErr
+	return errConnPoolExhausted
 }
 
 func (t *tcpConnPool) Close() {

@@ -3,7 +3,7 @@ package codec
 import (
 	"bufio"
 
-	"github.com/hemal-shah/memlink/internal"
+	"github.com/stripe/memlink/internal"
 )
 
 // LinkEncoder allows you to convert a request to a network request.

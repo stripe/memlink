@@ -53,14 +53,15 @@ func Test_MetaDeleteDecoders_HappyPath(t *testing.T) {
 			data := &bytes.Buffer{}
 			writer := bufio.NewWriter(data)
 
-			writer.Write(tt.memcachedResponse)
-			writer.Flush()
+			_, err := writer.Write(tt.memcachedResponse)
+			assert.NoError(t, err)
+			assert.NoError(t, writer.Flush())
 
 			decoder := &MetaDeleteDecoder{}
 			decoder.Reset()
 
 			mockReader := bufio.NewReader(data)
-			err := decoder.Decode(mockReader)
+			err = decoder.Decode(mockReader)
 			assert.NoError(t, err)
 
 			assert.Equal(t, tt.expectedOpaque, decoder.Opaque)
@@ -86,13 +87,15 @@ func Test_MetaDeleteDecoder_ErrorPath(t *testing.T) {
 			data := &bytes.Buffer{}
 			writer := bufio.NewWriter(data)
 
-			writer.Write(tt.erroneousLine)
-			writer.Flush()
+			_, err := writer.Write(tt.erroneousLine)
+			assert.NoError(t, err)
+			assert.NoError(t, writer.Flush())
+
 			decoder := &MetaDeleteDecoder{}
 			decoder.Reset()
 
 			mockReader := bufio.NewReader(data)
-			err := decoder.Decode(mockReader)
+			err = decoder.Decode(mockReader)
 			assert.Error(t, err)
 		})
 	}

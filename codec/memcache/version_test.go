@@ -13,7 +13,7 @@ func TestVersionEncode(t *testing.T) {
 
 	data := &bytes.Buffer{}
 	writer := bufio.NewWriter(data)
-	encoder.Encode(writer)
+	assert.NoError(t, encoder.Encode(writer))
 
 	assert.NoError(t, writer.Flush())
 	assert.Equal(t, "version\r\n", data.String())
@@ -31,5 +31,5 @@ func TestVersionDecode(t *testing.T) {
 	data.Reset()
 	data.Write([]byte("unexpected response\r\n"))
 	mockReader = bufio.NewReader(data)
-	assert.ErrorIs(t, decoder.Decode(mockReader), nonVersionRespErr)
+	assert.ErrorIs(t, decoder.Decode(mockReader), errNonVersionResp)
 }

@@ -9,7 +9,7 @@ import (
 	"go.uber.org/goleak"
 	"go.uber.org/zap"
 
-	"github.com/hemal-shah/memlink/codec"
+	"github.com/stripe/memlink/codec"
 )
 
 type MockTCPConnList struct {
@@ -64,7 +64,7 @@ func TestNewConnPoolWithEmptyBackends(t *testing.T) {
 func TestRemoveNonExistentBackend(t *testing.T) {
 	defer goleak.VerifyNone(t, goleak.IgnoreCurrent())
 	listener, _ := net.Listen("tcp", "localhost:11211")
-	defer listener.Close()
+	defer listener.Close() //nolint: errcheck
 
 	be := NewBackend(listener.Addr(), 1, nil)
 
@@ -95,13 +95,13 @@ func TestAppendToEmptyConnPool(t *testing.T) {
 
 	err := pool.Append(link)
 	assert.Error(t, err)
-	assert.Equal(t, err, emptyConnPoolErr)
+	assert.Equal(t, err, errEmptyConnPool)
 }
 
 func TestAppendWithInvalidHasherIdx(t *testing.T) {
 	defer goleak.VerifyNone(t, goleak.IgnoreCurrent())
 	listener, _ := net.Listen("tcp", "localhost:11211")
-	defer listener.Close()
+	defer listener.Close() //nolint: errcheck
 
 	be := NewBackend(listener.Addr(), 1, nil)
 
@@ -127,7 +127,7 @@ func TestAppendWithInvalidHasherIdx(t *testing.T) {
 func TestAppendingCorrectly(t *testing.T) {
 	defer goleak.VerifyNone(t, goleak.IgnoreCurrent())
 	listener, _ := net.Listen("tcp", "localhost:11211")
-	defer listener.Close()
+	defer listener.Close() //nolint: errcheck
 
 	be := NewBackend(listener.Addr(), 1, nil)
 
@@ -153,7 +153,7 @@ func TestAppendingCorrectly(t *testing.T) {
 func TestClosingPool(t *testing.T) {
 	defer goleak.VerifyNone(t, goleak.IgnoreCurrent())
 	listener, _ := net.Listen("tcp", "localhost:11211")
-	defer listener.Close()
+	defer listener.Close() //nolint: errcheck
 
 	be := NewBackend(listener.Addr(), 1, nil)
 
@@ -176,7 +176,7 @@ func TestClosingPool(t *testing.T) {
 func TestAddRemoveBackend(t *testing.T) {
 	defer goleak.VerifyNone(t, goleak.IgnoreCurrent())
 	listener, _ := net.Listen("tcp", "localhost:11211")
-	defer listener.Close()
+	defer listener.Close() //nolint: errcheck
 
 	be := NewBackend(listener.Addr(), 1, nil)
 

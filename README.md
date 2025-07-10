@@ -13,7 +13,7 @@ Memlink is a high-performance TCP client library for sending and receiving order
 ## Installation
 
 ```bash
-go get github.com/hemal-shah/memlink
+go get github.com/stripe/memlink
 ```
 
 ## Quickstart

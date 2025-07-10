@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hemal-shah/memlink/codec"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stripe/memlink/codec"
 	"go.uber.org/goleak"
 	"go.uber.org/zap"
 )
@@ -34,13 +34,13 @@ func (m *MockTCPConn) IsHealthy() bool {
 func TestNewTCPConnections(t *testing.T) {
 	defer goleak.VerifyNone(t, goleak.IgnoreCurrent())
 	listener, _ := net.Listen("tcp", "localhost:11211")
-	defer listener.Close()
+	defer listener.Close() //nolint: errcheck
 
 	be := NewBackend(listener.Addr(), 3, nil)
 
 	connList, err := NewTCPConnectionList(be, zap.NewNop())
 	assert.NoError(t, err)
-	defer connList.Close()
+	defer connList.Close() //nolint: errcheck
 	assert.NotNil(t, connList)
 
 	mockTCL, ok := connList.(*tcpConnList)
@@ -51,7 +51,7 @@ func TestNewTCPConnections(t *testing.T) {
 func TestNewTCPConnectionsWithZeroConns(t *testing.T) {
 	defer goleak.VerifyNone(t, goleak.IgnoreCurrent())
 	listener, _ := net.Listen("tcp", "localhost:11211")
-	defer listener.Close()
+	defer listener.Close() //nolint: errcheck
 
 	be := NewBackend(listener.Addr(), 0, nil)
 
@@ -64,7 +64,7 @@ func TestNewTCPConnectionsWithZeroConns(t *testing.T) {
 	assert.Equal(t, uint64(1), mockTCL.numConns)
 
 	time.Sleep(1 * time.Millisecond)
-	connList.Close()
+	assert.NoError(t, connList.Close())
 }
 
 func TestAppendWithNoConnections(t *testing.T) {
@@ -78,13 +78,13 @@ func TestAppendWithNoConnections(t *testing.T) {
 
 	err := mockTCL.Append(link)
 	assert.Error(t, err)
-	assert.ErrorIs(t, err, backendUnhealthyErr)
+	assert.ErrorIs(t, err, errBackendUnhealthy)
 }
 
 func TestAppendSuccessfully(t *testing.T) {
 	defer goleak.VerifyNone(t, goleak.IgnoreCurrent())
 	listener, _ := net.Listen("tcp", "localhost:11211")
-	defer listener.Close()
+	defer listener.Close() //nolint: errcheck
 
 	be := NewBackend(listener.Addr(), 2, nil)
 

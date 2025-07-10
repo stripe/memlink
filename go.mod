@@ -1,11 +1,8 @@
-module github.com/hemal-shah/memlink
+module github.com/stripe/memlink
 
-go 1.22.1
+go 1.22
 
-require (
-	github.com/stretchr/testify v1.10.0
-	golang.org/x/sync v0.6.0
-)
+require github.com/stretchr/testify v1.10.0
 
 require (
 	github.com/stretchr/objx v0.5.2 // indirect

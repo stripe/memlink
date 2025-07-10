@@ -3,7 +3,7 @@ package memcache
 import (
 	"bufio"
 
-	"github.com/hemal-shah/memlink/codec"
+	"github.com/stripe/memlink/codec"
 )
 
 // BulkEncoder wraps multiple Encoders of type codec.LinkEncoder to encode multiple requests.
