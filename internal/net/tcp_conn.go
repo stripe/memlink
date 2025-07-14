@@ -339,7 +339,7 @@ func (c *tcpConn) setup() error {
 
 		c.logger.Debug("Successfully established a connection", c.logFields...)
 		c.mu.Lock()
-		c.inbound = make(chan codec.Link, queueSize)
+		c.inbound = make(chan codec.Link, queueSize*2)
 		c.outbound = make(chan codec.Link, queueSize)
 		c.conn = conn
 		c.rw = rw
