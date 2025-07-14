@@ -71,9 +71,12 @@ const (
 	ConnectFailed connState = "connect_failed"
 )
 
-var errConnChangingState = errors.New("tcpConn: failed to acquire lock as the connection is changing state")
-var errZombieLinkOnEncoder = errors.New("tcpConn: encoder: link was pending in the encoder channel but conn was closed before processing")
-var errZombieLinkOnDecoder = errors.New("tcpConn: decoder: link was pending in the decoder channel but conn was closed before processing")
+var (
+	errConnChangingState   = errors.New("tcpConn: failed to acquire lock as the connection is changing state")
+	errZombieLinkOnEncoder = errors.New("tcpConn: encoder: link was pending in the encoder channel but conn was closed before processing")
+	errZombieLinkOnDecoder = errors.New("tcpConn: decoder: link was pending in the decoder channel but conn was closed before processing")
+	errOutboundQueueFull   = errors.New("tcpConn: append: outbound channel is full and can't instantly add a new link")
+)
 
 // TCPConn represents a single connection to an address.
 type TCPConn interface {
@@ -145,7 +148,11 @@ func NewTCPConn(be *Backend, logger *zap.Logger) (TCPConn, error) {
 func (c *tcpConn) Append(link codec.Link) (err error) {
 	if c.mu.TryRLock() {
 		if c.state == Connected {
-			c.outbound <- link
+			select {
+			case c.outbound <- link:
+			default:
+				err = errOutboundQueueFull
+			}
 		} else {
 			err = fmt.Errorf("cannot append link, connection to %s is in %s, not connected state", c.be.String(), c.state)
 		}
@@ -212,7 +219,12 @@ func (c *tcpConn) HandleOutbound(ctx context.Context) error {
 			// only add the decoder after the message is safely written through the encoder.
 			// we don't need any synchronization primitives as there's just 1 goroutine writing first
 			// to the outbound connection and then to the `c.inbound` channel.
-			c.inbound <- link
+			select {
+			case c.inbound <- link:
+			case <-ctx.Done():
+				c.logger.Debug("HandleOutbound is closing due to ctx.Done() while attempting to write to inbound", c.logFields...)
+				return nil
+			}
 		}
 	}
 }
