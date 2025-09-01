@@ -2,7 +2,7 @@ module github.com/stripe/memlink
 
 go 1.22
 
-require github.com/stretchr/testify v1.10.0
+require github.com/stretchr/testify v1.11.1
 
 require (
 	github.com/stretchr/objx v0.5.2 // indirect
