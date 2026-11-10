@@ -291,11 +291,20 @@ func exampleWithContext() {
 		} else {
 			log.Printf("Unexpected error: %v", err)
 		}
+		// Do not return setEncoder/setDecoder to their pools here: when
+		// MetaSet returns an error the request may still be in flight on
+		// the connection, so the encoder or decoder could still be read
+		// from or written to in the background. Recycling them while that
+		// is happening would hand a different caller an object that's
+		// still being mutated by this request. Only pool objects after a
+		// successful call.
+		return
 	} else {
 		fmt.Println("Operation completed within timeout")
 	}
 
-	// Return encoders/decoders to pools
+	// Safe to recycle now: MetaSet returned successfully, so nothing else
+	// will touch these objects.
 	setEncoderPool.Put(setEncoder)
 	setDecoderPool.Put(setDecoder)
 }
