@@ -245,6 +245,10 @@ The example includes several demonstrations:
 ### 3. Context and Timeouts
 - **Context with timeout**: Demonstrates timeout handling
 - **Cancellation**: Shows how to cancel operations
+- **Safe pool reuse on timeout**: Shows why a pooled encoder/decoder must
+  only be returned to its pool after a successful call — a context timeout
+  ends the caller's wait, but the request may still be in flight, so it is
+  not safe to recycle those objects at that point
 
 ### 4. Bulk Operations
 - **Multiple operations**: Setting, getting, and deleting multiple keys
@@ -254,7 +258,7 @@ The example includes several demonstrations:
 ### 5. Object Pooling
 - **Resettable pools**: Efficient memory management for encoders/decoders
 - **Automatic cleanup**: Objects returned to pools after use
-
+- **Cleanup after success**: Objects are returned to their pool once a request completes successfully — see "Context and Timeouts" above for why a failed or cancelled call should not do this
 ## Example Output
 
 When running successfully, you should see output similar to:
